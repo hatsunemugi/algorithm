@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/back.svg</file>
+        <file>icons/create.png</file>
+        <file>icons/create.svg</file>
+        <file>icons/layers.svg</file>
+        <file>icons/open.png</file>
+        <file>icons/open.svg</file>
+        <file>icons/settings.svg</file>
+        <file>logo.ico</file>
+        <file>icons/chess-queen.png</file>
+        <file>icons/black.png</file>
+        <file>icons/white.png</file>
+    </qresource>
+</RCC>
