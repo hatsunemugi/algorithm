@@ -5,31 +5,55 @@
 # 逆序
 
 就地逆序:需要三个指针分别保存prev,this,next
+
     prev = head;
+    
     this = head->next;
+    
     if(this == nullptr)//case a->nullptr
+    
         return
+        
     next = this->next;
+    
     if(next == nullptr)//case a->b->nullptr
+    
         this->next = prev;
+        
     while(next != nullptr)
+    
     {
+    
         this->next = prev;
+        
         prev = this;
+        
         this = next;
+        
         next = next->next;
+        
     }
+    
     this->next = prev;
 
 递归法:使用栈
+
     stack<Node*> stack;
+    
     void reverse(Node* head)
+    
     {
+    
         stack.push(head);
+        
         if(head->next != nullptr)
+        
             reverse(head->next);
+            
         auto node = stack.pop();
+        
         node->next = stack.size() != 0 ? stack.front() : nullptr;
+        
     }
 
 # dfs
