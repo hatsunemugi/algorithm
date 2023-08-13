@@ -207,8 +207,6 @@ QQueue<Node *> algorithm::kruscal(Vertex *source)
         {
             result.append(insert(e));
         }
-        if(S.size() == size)
-            break;
     }
 
     return result;
