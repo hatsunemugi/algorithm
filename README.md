@@ -2,6 +2,11 @@
 图算法可视化实现
 
 
+
+https://github.com/hatsunemugi/algorithm/assets/52739182/d950faa6-11d8-4cc6-bc1f-79a7e6fa2a5b
+
+
+
 # 逆序
 
 就地逆序:需要三个指针分别保存prev,this,next
