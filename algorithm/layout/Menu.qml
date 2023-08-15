@@ -88,6 +88,7 @@ Popup {
             {
                 case 0: loader.open();break;
                 case 1: saver.open();break;
+                case 2: graph.clear();break;
                 default:
                     break;
             }

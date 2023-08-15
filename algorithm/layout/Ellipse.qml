@@ -6,6 +6,7 @@ Item {
     property int size: 24
     property Vertex vertex/*: Vertex {}*/
     property alias text: name
+    property int count: 0
     signal select(QtObject object)
     signal line(QtObject object)
     signal edit(QtObject object)
@@ -95,19 +96,30 @@ Item {
             }
         }
     }
+    SequentialAnimation {
+        id: wave
+        NumberAnimation { target: root; property: "size"; to: 28; easing.type: Easing.InOutQuad; duration: 64; }
+        NumberAnimation { target: root; property: "size"; to: 24; easing.type: Easing.InOutQuad; duration: 64; }
+    }
     function connection(object) {
         vertex = object
         vertex.visited.connect(onVisited)
         vertex.left.connect(onLeft)
         vertex.position.connect(onPosition)
+        vertex.deleted.connect(onDeleted)
     }
     function onVisited() {
-        if(area.base_color != "#ee7c2d")
-            area.base_color = "#ee7c2d"
-        else
-            area.base_color = "#ffa07a"
+        area.base_color = graph.color(count)
+        count++
+//        if(area.base_color != "#ee7c2d")
+//            area.base_color = "#ee7c2d"
+//        else
+//            area.base_color = "#ffa07a"
+        toast.toast(128)
+        wave.running = true
     }
     function onLeft() {
+        count = 0
         area.base_color = "#9900ff00"
     }
     function onPosition(x,y) {
@@ -115,5 +127,18 @@ Item {
         root.y = y
         vertex.setPosition(x,y)
     }
-
+    function onDeleted() {
+        root.destroy();
+    }
+    Toast {
+        id: toast
+        y: parent.height
+        text.text: count
+        text.font.pointSize: 12
+        onTimeout: {
+            visible = !visible
+            if(visible)
+                toast.toast(5000)
+        }
+    }
 }

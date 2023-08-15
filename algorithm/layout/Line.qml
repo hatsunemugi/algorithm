@@ -4,6 +4,7 @@ import QtQuick.Controls
 import algorithm
 Item {
     id: root
+    property int count: 0
     property QtObject source
     property QtObject target
     property Edge edge/*: Edge{}*/
@@ -15,21 +16,6 @@ Item {
 
     anchors.centerIn: source
     rotation: angle()
-//    Edge {
-//        id: edge
-//        onReversed: {
-//            if(arrow.state === "left")
-//                arrow.state = "right"
-//            else if(arrow.state === "right")
-//                arrow.state = "left"
-//        }
-//        onVisited: {
-//            area.base_color = "#ee7c2d"
-//        }
-//        onLeft: {
-//            area.base_color = "#66000000"
-//        }
-//    }
 
     Rectangle {
         id: rect
@@ -164,11 +150,17 @@ Item {
         }
         return value
     }
+    SequentialAnimation {
+        id: wave
+        NumberAnimation { target: root; property: "size"; to: 10; easing.type: Easing.InOutQuad; duration: 64; }
+        NumberAnimation { target: root; property: "size"; to: 8; easing.type: Easing.InOutQuad; duration: 64; }
+    }
     function connection(object) {
         edge = object
         edge.visited.connect(onVisited)
         edge.left.connect(onLeft)
         edge.reversed.connect(onReversed)
+        edge.deleted.connect(onDeleted)
     }
     function onReversed() {
         if(arrow.state === "left")
@@ -177,13 +169,20 @@ Item {
             arrow.state = "left"
     }
     function onVisited() {
-        if(area.base_color != "#ee7c2d")
-            area.base_color = "#ee7c2d"
-        else
-            area.base_color = "#ffa07a"
+        area.base_color = graph.color(count)
+        count++
+//        if(area.base_color != "#ee7c2d")
+//            area.base_color = "#ee7c2d"
+//        else
+//            area.base_color = "#ffa07a"
+        wave.running = true;
     }
     function onLeft() {
+        count = 0
         area.base_color = "#66000000"
+    }
+    function onDeleted() {
+        root.destroy()
     }
     onSourceChanged: {
         point = Qt.point(source.x,source.y)
@@ -191,7 +190,13 @@ Item {
 
     onTargetChanged: {
 //        console.log(z,target.z)
+        if(source ==null || target == null)
+            return
         area.hoverEnabled = true
         graph.set(source.vertex,target.vertex,edge)
+    }
+    Component.onDestruction: {
+        if(edge != null)
+            edge.destroy()
     }
 }

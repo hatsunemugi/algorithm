@@ -3,9 +3,14 @@
 #include <iostream>
 #include "format.h"
 
-using graph::algorithm;
-QHash<QString,Vertex*> table = QHash<QString,Vertex*>();
-
+using algorithm = Context::algorithm;
+QHash<QString,Vertex*> Context::table;
+QHash<QString,QColor> Context::colors;
+QVector<Vertex*> Context::history;
+QTextStream Context::qout(stdout);
+int Context::INF = -1;
+Vertex* Context::root = nullptr;
+Graph* Context::graph = nullptr;
 void algorithm::reverse(Vertex *vertex)
 {
     if(vertex->visited)
@@ -297,7 +302,7 @@ QQueue<Node *> algorithm::floyd(Vertex *source)
             int j;
             if(e->target == v){
                 j = vertexs.indexOf(e->source);
-                D[i][j] = inf;
+                D[i][j] = INF;
             }
             else{
                 j = vertexs.indexOf(e->target);
@@ -391,7 +396,7 @@ QQueue<Node*> algorithm::dijkstra(Vertex *source, Vertex *target)
     Edge* min = nullptr;
 
     for(auto v: vertexs)
-        arcs.insert(v->name,{inf});
+        arcs.insert(v->name,{INF});
 
     for(auto e: source->edges)
     {
@@ -405,14 +410,14 @@ QQueue<Node*> algorithm::dijkstra(Vertex *source, Vertex *target)
         if(i > vertexs.size())//防止出现环
             return result;
         min = nullptr;
-        int value = inf;
+        int value = INF;
         for(auto arc: arcs.values())
         {
-            if(arc.distance != inf)//顶点不可达,跳过
+            if(arc.distance != INF)//顶点不可达,跳过
             {
                 if(!arc.edge->target->visited)//顶点已访问,跳过
                 {
-                    if(arc.distance < value || value == inf)
+                    if(arc.distance < value || value == INF)
                     {
                         min = arc.edge;
                         value = arc.distance;
@@ -433,7 +438,7 @@ QQueue<Node*> algorithm::dijkstra(Vertex *source, Vertex *target)
         for(auto edge: min->target->edges)
         {
             auto name = edge->target->name;
-            if(arcs.value(name).distance == inf)
+            if(arcs.value(name).distance == INF)
             {
                 arcs.insert(name,{edge->weight + value, edge});
             }
@@ -446,4 +451,27 @@ QQueue<Node*> algorithm::dijkstra(Vertex *source, Vertex *target)
         i++;
     }
     return result;
+}
+
+void Context::load_color()
+{
+    QString path = "values/colors.txt";
+    QFile* file = new QFile(path);
+    if(!file->open(QIODevice::ReadOnly)){
+        qDebug()<<"fail to open"<<path;
+        path="algorithm/"+path;
+        file =new QFile(path);
+        if(!file->open(QIODevice::ReadOnly)){
+            qDebug()<<"fail to open"<<path;
+            return;
+        }
+    }
+    while (!file->atEnd()) {
+        auto a = QString::fromUtf8(file->readLine()).split(" ");
+        if(a.size()>1)
+        {
+            colors.insert(a[0],a[1]);
+        }
+    }
+    qDebug()<<colors.size();
 }

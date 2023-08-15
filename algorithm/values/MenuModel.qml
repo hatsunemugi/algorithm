@@ -10,6 +10,7 @@ DelegateModel {
     model: ListModel {
         ListElement{name: "打开"}
         ListElement{name: "保存"}
+        ListElement{name: "清空"}
     }
     delegate: Rectangle {
         width: text.contentWidth

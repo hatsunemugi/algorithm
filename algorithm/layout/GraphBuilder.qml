@@ -153,5 +153,8 @@ MouseArea {
 //                line.target = target
             }
         }
+        function onSync(value) {
+            count = value + 1
+        }
     }
 }

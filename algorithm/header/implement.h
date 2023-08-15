@@ -2,19 +2,24 @@
 #define IMPLEMENT_H
 
 #include <QHash>
+#include <QColor>
 #include <QObject>
 #include <QTextStream>
 class Node;
 class Edge;
 class Graph;
 class Vertex;
-namespace graph{
+class Context
+{
+public:
     static QHash<QString,Vertex*> table;
+    static QHash<QString,QColor> colors;
     static QVector<Vertex*> history;
     static Vertex* root;
     static Graph* graph;
-    static QTextStream qout(stdout);
-    static int inf = -1;
+    static QTextStream qout;
+    static int INF;
+    static void load_color();
     class algorithm
     {
     public:
@@ -30,7 +35,7 @@ namespace graph{
         static QQueue<Node*> dijkstra(Vertex*,Vertex*);
         static QQueue<Node*> topological_sort(QVector<Vertex*>,bool* is_dag=nullptr);//拓扑排序,有向无环图(DAG,directed_acyclic_graph)
     };
-}
+};
 
 
 

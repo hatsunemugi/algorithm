@@ -1,4 +1,5 @@
 import QtQuick
+import algorithm
 import QtQuick.Window
 
 Window {
@@ -16,5 +17,8 @@ Window {
     Panel {}
     Menu {
         id: loader
+    }
+    onClosing: (close) => {
+        graph.clear()
     }
 }

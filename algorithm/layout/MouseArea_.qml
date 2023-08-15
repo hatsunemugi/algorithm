@@ -1,5 +1,5 @@
 import QtQuick
-
+import QtQuick.Controls
 MouseArea {
     id: root
     property color base_color: '#ffffff'
@@ -11,6 +11,9 @@ MouseArea {
     hoverEnabled: true
     onHoveredChanged: {
         parent.color= containsMouse ?  hover_color :base_color
+    }
+    onEntered: {
+        toast.toast()
     }
     onPressed: {
         parent.color= press_color
@@ -24,4 +27,21 @@ MouseArea {
         parent.color = base_color
     }
     Component.onCompleted: parent.color = base_color
+    ToolTip{
+        id: tip
+        text: root.parent.color
+        delay: Qt.styleHints.mousePressAndHoldInterval
+    }
+    Toast {
+        id: toast
+        interval: 1000
+        x: mouseX
+        y: root.y + height
+        onTimeout: {
+            text.text = root.parent.color
+            visible = root.containsMouse
+            if(visible)
+                toast.toast()
+        }
+    }
 }

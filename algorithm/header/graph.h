@@ -4,9 +4,10 @@
 #include <QtQml>
 #include <QObject>
 #include "implement.h"
+
 class Edge;
 
-using namespace::graph;
+//using namespace::graph;
 using std::vector;
 using std::string;
 class Node : public QObject
@@ -29,7 +30,9 @@ signals:
     void visited();
     void left();
     void position(int,int);
+    void deleted();
 public slots:
+//    virtual void destroy(){deleteLater();}
     virtual void visit(int delay){
         emit visited();
         qDebug()<<"visit"<<toString();
@@ -64,7 +67,7 @@ public:
     Vertex(){ type=Node::Type::Vertex; }
     Vertex(QString);
     ~Vertex(){qDebug()<<"vertex"<<name<<"destructed";}
-    friend class algorithm;
+    friend class Context;
     static Vertex* root(Vertex* source){
         while(source->parent !=source)
             source = source->parent;
@@ -73,6 +76,7 @@ public:
 signals:
 
 public slots:
+    void visit(int);
     QString toString();
     void add(Edge*);
     void set(QString);
@@ -117,13 +121,14 @@ class Graph : public QObject
     Q_OBJECT
     QML_ELEMENT
 public:
-    Graph(){graph::graph = this;}
+    Graph(){Context::graph = this;}
     void persist();
     void dijkstra();
     void print(QQueue<Node*>);
     static vector<string> print(vector<vector<int>>);
     static vector<string> print(vector<vector<string>>);
 public slots:
+    void clear();
     void load(QString);
     void save(QString);
     void exec(QVariant);
@@ -132,11 +137,15 @@ public slots:
     void addVertex(Vertex*);
     void set(Vertex*,Vertex*,Edge*);
     Node* get(QString);
+    QColor color(QString);
+    QColor color(int);
     Vertex* guess();
 signals:
     void paint(Node*);
+    void sync(int);
 private:
     QQueue<Node*> queue;
+    static QVector<QString> names;
     bool persistent = false;
 };
 

@@ -4,7 +4,8 @@
 #include <QTextStream>
 
 using namespace fmt;
-using graph::algorithm;
+using algorithm = Context::algorithm;
+QVector<QString> Graph::names = {"鹿皮鞋","柠檬雪纺","浅青色","珊瑚","金","深橙色"};
 
 Edge::Edge(Vertex *s, Vertex *t, int w):Edge()
 {
@@ -50,7 +51,31 @@ bool Edge::contains(Vertex *source_, Vertex *target_)
 Vertex::Vertex(QString value): Vertex()
 {
     name = value;
-//    qDebug()<<toString();
+    //    qDebug()<<toString();
+}
+
+void Vertex::visit(int delay)
+{
+    Node::visit(-1);
+    visited = true;
+    if(delay == -1)
+        return;
+    QTimer* timer = new QTimer;
+    timer->setInterval(delay);
+    connect(timer,&QTimer::timeout,this,[&,timer](){
+            bool all_visited = true;
+            for(auto e: edges)
+            {
+                if(e->target != this && e->target->visited == false)
+                    all_visited = false;
+            }
+            if(all_visited){
+                leave();
+                disconnect(timer,0,0,0);
+                timer->deleteLater();
+            }
+        },Qt::QueuedConnection);
+    timer->start();
 }
 
 QString Vertex::toString()
@@ -76,7 +101,7 @@ void Graph::persist()
     persistent = !persistent;
     if(!persistent)
     {
-        for(auto v: table.values())
+        for(auto v: Context::table.values())
         {
             for(auto e: v->edges)
             {
@@ -92,11 +117,13 @@ void Graph::dijkstra()
     Vertex* source;
     Vertex* target;
     bool is_dag;
-    algorithm::topological_sort(table.values(),&is_dag);
+    algorithm::topological_sort(Context::table.values(),&is_dag);
     qDebug()<<is_dag;
     if(is_dag)
     {
-        queue = algorithm::dijkstra(root,root);
+        if(Context::root == nullptr)
+            return;
+        queue = algorithm::dijkstra(Context::root,Context::root);
         print(queue);
     }
 }
@@ -106,6 +133,8 @@ void Graph::print(QQueue<Node*> view)
     if(view.isEmpty())
         return;
     qDebug()<<"view";
+    for(auto v: Context::table.values())
+        v->visited = false;
     queue = view;
     QTimer* timer = new QTimer;
     timer->setInterval(500);
@@ -183,6 +212,27 @@ vector<string> Graph::print(vector<vector<string>> m)
     return result;
 }
 
+void Graph::clear()
+{
+    Context::root = nullptr;
+    auto a = Context::table.values();
+    Context::table.clear();
+    for(auto v: a){
+        for(auto e: v->edges)
+        {
+            if(e == nullptr)
+                continue;
+            if(e->target == v)
+                continue;
+            e->deleteLater();
+            emit e->deleted();
+        }
+        emit v->deleted();
+        v->deleteLater();
+    }
+    emit sync(Context::table.size());
+}
+
 void Graph::load(QString path)
 {
     if(path.startsWith("file:"))
@@ -196,6 +246,7 @@ void Graph::load(QString path)
     int size = file.readLine().toInt();
     QString s = file.readLine();
     s = s.split("\r\n").front();
+    auto& table = Context::table;
     for(auto i: s.split(";"))
     {
         auto a = i.split(":");
@@ -229,6 +280,7 @@ void Graph::save(QString path)
         qDebug()<<"fail to open"<<path;
         return;
     }
+    auto& table = Context::table;
     QTextStream ts(&file);
     QString s;
     auto vertexs = table.values();
@@ -251,11 +303,12 @@ void Graph::save(QString path)
 
 void Graph::exec(QVariant value)
 {
+    auto& root = Context::root;
     if(root == nullptr)
         root = guess();
     if(root == nullptr)
         return;
-    for(auto v: table.values())
+    for(auto v: Context::table.values())
         v->visited = false;
     int i = value.toInt();
     switch (i) {
@@ -266,7 +319,7 @@ void Graph::exec(QVariant value)
         algorithm::reverse(root);
         break;
     case 2:
-        print(algorithm::topological_sort(table.values()));
+        print(algorithm::topological_sort(Context::table.values()));
         break;
     case 3:
         print(algorithm::bfs(root));
@@ -293,7 +346,8 @@ void Graph::exec(QVariant value)
 
 void Graph::set(Vertex *vertex)
 {
-    root = vertex;
+    Context::root = vertex;
+    auto history = Context::history;
     history.push_back(vertex);
     while (history.size() > 3)
         history.pop_front();
@@ -317,6 +371,7 @@ void Graph::set(Vertex *source, Vertex *target, Edge *edge)
     edge->set(source,target);
     source->add(edge);
     target->add(edge);
+    auto& table = Context::table;
     table.insert(source->name,source);
     table.insert(target->name,target);
     qDebug()<<edge->toString();
@@ -331,9 +386,29 @@ Node *Graph::get(QString name)
     return new Vertex();
 }
 
+QColor Graph::color(QString name)
+{
+    auto& colors = Context::colors;
+    QColor color(0xffffff);
+    if(colors.isEmpty())
+        Context::load_color();
+    if(colors.contains(name))
+        color = colors.value(name);
+    else
+        qDebug()<<"no"<<colors.size();
+    return color;
+}
+
+QColor Graph::color(int index)
+{
+    if(Context::colors.isEmpty())
+        Context::load_color();
+    return Context::colors.value(names[index%names.size()]);
+}
+
 Vertex *Graph::guess()
 {
-    for(auto v: table.values()){
+    for(auto v: Context::table.values()){
         if(v->edges.size() - v->degree == 0)
             return v;
     }

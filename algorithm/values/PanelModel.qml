@@ -29,6 +29,9 @@ DelegateModel {
             text: name
         }
         MouseArea_ {
+            base_color: "transparent"
+            hover_color: "#25000000"
+            press_color: "#99000000"
             onClicked: {
                 select(index)
             }
